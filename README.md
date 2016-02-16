@@ -1,2 +1,2 @@
-# UA-.NET-Windows-Universal-Platform
-OPC Unified Architecture .NET for the Windows Universal Platform
+# UA-Universal-Windows-Platform
+OPC Unified Architecture for the Universal Windows Platform
