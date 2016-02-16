@@ -144,6 +144,10 @@
       <Project>{aa9d8d17-5dbd-4e77-8496-e32177573bf3}</Project>
       <Name>Opc.Ua.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\SDK\Client\Opc.Ua.Client.csproj">
+      <Project>{b89bfa9d-419f-49b4-8210-286e7167e646}</Project>
+      <Name>Opc.Ua.Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\SDK\Configuration\Opc.Ua.Configuration.csproj">
       <Project>{26a56753-9326-48c3-95bb-11594293b7a8}</Project>
       <Name>Opc.Ua.Configuration</Name>
@@ -159,6 +163,10 @@
     <ProjectReference Include="..\Common\Opc.Ua.Sample.csproj">
       <Project>{f9e0dbb6-fd8d-4871-b179-bbf3a2a3cda1}</Project>
       <Name>Opc.Ua.Sample</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Controls\Opc.Ua.Sample.Controls.csproj">
+      <Project>{5192cb9a-d4fc-41ef-839f-d9e08c17f221}</Project>
+      <Name>Opc.Ua.Sample.Controls</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
