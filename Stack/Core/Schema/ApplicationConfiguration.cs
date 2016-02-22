@@ -2221,7 +2221,7 @@ namespace Opc.Ua
 
             set
             {
-                if (value.StartsWith(ApplicationData.Current.LocalFolder.Path) == true)
+                if (value.StartsWith(ApplicationData.Current.LocalFolder.Path))
                 {
                     m_storePath = value;
                 }

@@ -20,6 +20,22 @@
         </uap:DefaultTile>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name=".der">
+            <uap:SupportedFileTypes>
+              <uap:FileType>.der</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name=".pfx">
+            <uap:SupportedFileTypes>
+              <uap:FileType>.pfx</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+      </Extensions>
     </Application>
   </Applications>
   <Capabilities>
@@ -28,5 +44,6 @@
     <uap:Capability Name="sharedUserCertificates" />
     <uap:Capability Name="enterpriseAuthentication" />
     <uap:Capability Name="userAccountInformation" />
+    <uap:Capability Name="removableStorage" />
   </Capabilities>
 </Package>

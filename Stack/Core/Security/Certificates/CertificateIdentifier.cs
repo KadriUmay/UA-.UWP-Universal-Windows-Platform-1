@@ -179,7 +179,7 @@ namespace Opc.Ua
             {                
                 using (DirectoryCertificateStore store = new DirectoryCertificateStore())
                 {
-                    store.Open(this.StorePath);
+                    await store.Open(this.StorePath);
                     m_certificate = store.LoadPrivateKey(this.Thumbprint, this.SubjectName, password);
                     return m_certificate;
                 }
@@ -209,7 +209,7 @@ namespace Opc.Ua
                 // open store.
                 using (ICertificateStore store = CertificateStoreIdentifier.CreateStore(StoreType))
                 {
-                    store.Open(StorePath);
+                    await store.Open(StorePath);
 
                     X509Certificate2Collection collection = await store.Enumerate();
 
@@ -480,7 +480,8 @@ namespace Opc.Ua
         public ICertificateStore OpenStore()
         {
             ICertificateStore store = CertificateStoreIdentifier.CreateStore(this.StoreType);
-            store.Open(this.StorePath);
+            Task t = Task.Run(() => store.Open(this.StorePath));
+            t.Wait();
             return store;
         }
 
@@ -500,7 +501,7 @@ namespace Opc.Ua
 
             try
             {
-                store.Open(this.StorePath);
+                await store.Open(this.StorePath);
                 return store.GetPrivateKeyFilePath(certificate.Thumbprint);
             }
             finally

@@ -790,7 +790,7 @@ namespace Opc.Ua.Configuration
                     try
                     {
                         WindowsCertificateStore store = new WindowsCertificateStore();
-                        store.Open("LocalMachine\\UA Applications");
+                        await store.Open("LocalMachine\\UA Applications");
 
                         X509Certificate2Collection collection = await store.Enumerate();
                         if (collection.Count == 0)

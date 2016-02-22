@@ -355,7 +355,7 @@ namespace Opc.Ua
                     store = new Opc.Ua.DirectoryCertificateStore();
                 }
 
-                store.Open(storePath);
+                await store.Open(storePath);
                 await store.Add(certificate);
             }
 
@@ -611,7 +611,7 @@ namespace Opc.Ua
 
                 // load the new certificate from the store.
                 ICertificateStore store = new Opc.Ua.DirectoryCertificateStore();
-                store.Open(storePath);
+                await store.Open(storePath);
                 X509Certificate2Collection certificates = await store.FindByThumbprint(thumbprint);
                 store.Close();
 

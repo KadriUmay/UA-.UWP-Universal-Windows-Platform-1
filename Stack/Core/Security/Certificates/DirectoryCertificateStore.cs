@@ -28,6 +28,7 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
+using Windows.Storage;
 
 namespace Opc.Ua
 {
@@ -88,14 +89,43 @@ namespace Opc.Ua
 
         #region ICertificateStore Members
         /// <summary cref="ICertificateStore.Open(string)" />
-        public void Open(string location)
+        public async Task Open(string location)
         {
+            bool certsInRemovableStorageRootFound = false;
+            IReadOnlyList<StorageFolder> folders = new List<StorageFolder>();
+
+            try
+            {
+                folders = await KnownFolders.RemovableDevices.GetFoldersAsync();
+                if (folders.Count > 0)
+                {
+                    IReadOnlyList<StorageFile> files = await folders[0].GetFilesAsync();
+                    if (files.Count > 0)
+                    {
+                        certsInRemovableStorageRootFound = true;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // do nothing
+            }
+
             lock (m_lock)
             {
-                location = Utils.ReplaceSpecialFolderNames(location);
-                m_directory = new DirectoryInfo(location);
-                m_certificateSubdir = new DirectoryInfo(m_directory.FullName + "\\certs");
-                m_privateKeySubdir = new DirectoryInfo(m_directory.FullName + "\\private");
+                if (certsInRemovableStorageRootFound && (folders.Count > 0))
+                {
+                    m_directory = new DirectoryInfo(folders[0].Path);
+                    m_certificateSubdir = m_directory;
+                    m_privateKeySubdir = m_directory;
+                }
+                else
+                {
+                    location = Utils.ReplaceSpecialFolderNames(location);
+                    m_directory = new DirectoryInfo(location);
+                    m_certificateSubdir = new DirectoryInfo(m_directory.FullName + "\\certs");
+                    m_privateKeySubdir = new DirectoryInfo(m_directory.FullName + "\\private");
+                }
             }
         }
 

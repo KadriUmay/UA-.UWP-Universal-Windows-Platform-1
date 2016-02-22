@@ -23,6 +23,7 @@
 
 using System;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace Opc.Ua
 {
@@ -164,7 +165,8 @@ namespace Opc.Ua
         public ICertificateStore OpenStore()
         {
             ICertificateStore store = CreateStore(this.StoreType);
-            store.Open(this.StorePath);
+            Task t = Task.Run(() => store.Open(this.StorePath));
+            t.Wait();
             return store;
         }
         #endregion

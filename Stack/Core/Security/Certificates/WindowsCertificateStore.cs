@@ -89,12 +89,14 @@ namespace Opc.Ua
 		/// \\MYPC\Service\My UA Server\UA Applications
 		/// User\S-1-5-25\Root
 		/// </remarks>
-        public void Open(string location)
+        public Task Open(string location)
         {
             lock (m_lock)
             {   
 	            Parse(location);
             }
+
+            return Task.FromResult(true);
         }
 
         /// <summary cref="ICertificateStore.Close()" />
@@ -293,7 +295,6 @@ namespace Opc.Ua
         /// <summary cref="ICertificateStore.SetAccessRules(string, IList{ApplicationAccessRule},bool)" />
         public void SetAccessRules(string thumbprint, IList<ApplicationAccessRule> rules, bool replaceExisting)
         {
-           
         }
 
         /// <summary>

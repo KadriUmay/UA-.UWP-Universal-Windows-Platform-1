@@ -40,7 +40,7 @@ namespace Opc.Ua
         /// <remarks>
         /// The syntax depends on the store implementation.
         /// </remarks>
-		void Open(string location);
+		Task Open(string location);
 
         /// <summary>
         /// Closes the store.
