@@ -198,10 +198,6 @@ namespace Opc.Ua.Sample.Controls
                 {
                     // session now owns the channel.
                     channel = null;
-
-                    // delete session in the tree control
-                    Close();
-
                     // add session to tree.
                     AddNode(session);
 
@@ -253,7 +249,7 @@ namespace Opc.Ua.Sample.Controls
             {
                 node.Children.Clear();
             }
-            
+
             // close any dialogs.
             foreach (SubscriptionDlg dialog in new List<SubscriptionDlg>(m_dialogs.Values))
             {
@@ -261,8 +257,7 @@ namespace Opc.Ua.Sample.Controls
             }
 
             session.Close();
-            NodesTV.SelectedItem = null;
-            SelectNode();
+            NodesTV.TreeItems.Remove(node);
         }
 
         /// <summary>
@@ -308,7 +303,7 @@ namespace Opc.Ua.Sample.Controls
 
             Subscription subscription = monitoredItem.Subscription;
             subscription.RemoveItem(monitoredItem);
-            subscription.ApplyChanges();;
+            subscription.ApplyChanges();
             NodesTV.SelectedItem = FindNode(NodesTV.TreeItems, subscription);
         }
 
@@ -444,8 +439,6 @@ namespace Opc.Ua.Sample.Controls
             }
             
             UpdateNode(node, sender as Session);
-            //node.EnsureVisible();
-            //node.Expand();
         }
 
         /// <summary>
@@ -538,6 +531,7 @@ namespace Opc.Ua.Sample.Controls
             }
             
             NodesTV.SelectedItem = node;
+            SelectNode();
         }
 
         /// <summary>

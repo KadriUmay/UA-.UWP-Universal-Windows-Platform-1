@@ -281,7 +281,7 @@ namespace Opc.Ua
             }
             catch (Exception e)
             {
-                Utils.Trace(e, "Unexpected error handling timeout for AsyncResult operation.");
+                Utils.Trace(e, "Unexpected error handling timeout for ChannelAsyncResult operation.");
             }
         }
         #endregion

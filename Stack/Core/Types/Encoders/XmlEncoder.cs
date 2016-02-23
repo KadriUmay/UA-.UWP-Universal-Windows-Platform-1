@@ -49,6 +49,7 @@ namespace Opc.Ua
 
             XmlWriterSettings settings = new XmlWriterSettings();
             settings.CheckCharacters = false;
+            settings.ConformanceLevel = ConformanceLevel.Auto;
 
             m_writer = XmlWriter.Create(m_destination, settings);
         }     

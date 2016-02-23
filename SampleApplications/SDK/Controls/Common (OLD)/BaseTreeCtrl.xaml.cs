@@ -35,6 +35,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Windows.UI;
+using Windows.UI.Popups;
+using Windows.Foundation;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using WinRTXamlToolkit.Controls;
@@ -284,7 +287,7 @@ namespace Opc.Ua.Client.Controls
     /// </summary>
     public partial class BaseTreeCtrl : UserControl
     {
-        #region Public Interface
+#region Public Interface
         /// <summary>
         /// The TreeView contained in the Control.
         /// </summary>
@@ -330,6 +333,8 @@ namespace Opc.Ua.Client.Controls
             get { return m_enableDragging; }
             set { m_enableDragging = value; }
         }
+
+        public PopupMenu ContextMenu { get; set; }
 
         /// <summary>
         /// Clears the contents of the TreeView
@@ -475,7 +480,7 @@ namespace Opc.Ua.Client.Controls
         /// <summary>
         /// Returns the Tag for the current selection.
         /// </summary>
-        protected object SelectedTag
+        public object SelectedTag
         {
             get
             {
@@ -491,15 +496,21 @@ namespace Opc.Ua.Client.Controls
 
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            TreeView tv = sender as TreeView;
-            TreeItemViewModel node = e.NewValue as TreeItemViewModel;
+            SelectNode();
         }
 
         private void TreeView_RightTapped(object sender, RightTappedRoutedEventArgs e)
         {
             TreeView tv = sender as TreeView;
+            if (ContextMenu != null)
+            {
+                FrameworkElement element = (FrameworkElement)e.OriginalSource;
+                GeneralTransform buttonTransform = element.TransformToVisual(null);
+                Point point = buttonTransform.TransformPoint(new Point());
+                Rect selection = new Rect(point, new Size(element.ActualWidth, element.ActualHeight));
+                var chosenCommand = ContextMenu.ShowForSelectionAsync(selection);
+            }
         }
-
     }
 
     #region TreeNodeAction Eumeration
@@ -538,7 +549,7 @@ namespace Opc.Ua.Client.Controls
 		}
 #endregion
         
-#region Private Fields
+#region Public Fields
         /// <summary>
         /// The tag associated with the node that was acted on.
         /// </summary>

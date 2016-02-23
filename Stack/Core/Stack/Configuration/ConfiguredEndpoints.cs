@@ -1354,7 +1354,7 @@ namespace Opc.Ua
         /// </summary>
         public new object MemberwiseClone()
         {
-            return this.MemberwiseClone();
+            return new EndpointComIdentity();
         }
         
         #region Overridden Methods

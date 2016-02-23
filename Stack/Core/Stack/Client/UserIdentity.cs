@@ -53,22 +53,9 @@ namespace Opc.Ua
         /// <param name="password">The password.</param>
         public UserIdentity(string username, string password)
         {
-        }
-
-        /// <summary>
-        /// Initializes the object with an X509 certificate identifier
-        /// </summary>
-        /// <param name="certificateId">The certificate identifier.</param>
-        public UserIdentity(CertificateIdentifier certificateId)
-        {
-        }
-
-        /// <summary>
-        /// Initializes the object with an X509 certificate
-        /// </summary>
-        /// <param name="certificate">The X509 certificate.</param>
-        public UserIdentity(X509Certificate2 certificate)
-        {
+            // TODO: We could add Microsoft Live ID account identity here (which is the
+            // supported user identity in Universal Windows Platform apps), but I'm not
+            // sure how useful this would be in industrial contexts.
         }
 
         /// <summary>
@@ -142,10 +129,7 @@ namespace Opc.Ua
 
             m_policyId = token.PolicyId;
   
-            UserNameIdentityToken usernameToken = token as UserNameIdentityToken;
-
             AnonymousIdentityToken anonymousToken = token as AnonymousIdentityToken;
-
             if (anonymousToken != null)
             {
                 m_tokenType = UserTokenType.Anonymous;
@@ -158,30 +142,6 @@ namespace Opc.Ua
         }
         #endregion
         
-        #region WIN32 Function Declarations
-        private static class Win32
-        {
-            public const int LOGON32_PROVIDER_DEFAULT = 0;
-            public const int LOGON32_LOGON_INTERACTIVE = 2;
-            public const int LOGON32_LOGON_NETWORK = 3;
-
-            [DllImport("advapi32.dll", SetLastError = true)]
-            public static extern int LogonUserW(
-                [MarshalAs(UnmanagedType.LPWStr)]
-                string lpszUsername,
-                [MarshalAs(UnmanagedType.LPWStr)]
-                string lpszDomain,
-                [MarshalAs(UnmanagedType.LPWStr)]
-                string lpszPassword,
-                int dwLogonType,
-                int dwLogonProvider,
-                ref IntPtr phToken);
-
-            [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-            public extern static int CloseHandle(IntPtr handle);
-        }
-        #endregion
-       
         #region Private Fields
         private string m_displayName;
         private UserTokenType m_tokenType;

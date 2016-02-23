@@ -1,6 +1,5 @@
 ﻿using Opc.Ua.Client;
 using Opc.Ua.Client.Controls;
-using Opc.Ua.Sample.Controls;
 using Opc.Ua.Configuration;
 using System;
 using System.Collections.Generic;
@@ -10,11 +9,10 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Text;
+using Windows.UI.Popups;
 using Windows.UI;
 using System.Threading;
-
-
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
+using System.Text;
 
 namespace Opc.Ua.SampleClient
 {
@@ -66,6 +64,9 @@ namespace Opc.Ua.SampleClient
             
             SessionsCTRL.Configuration = configuration;
             SessionsCTRL.MessageContext = context;
+            SessionsCTRL.AddressSpaceCtrl = BrowseCTRL;
+            SessionsCTRL.NodeSelected += SessionCtrl_NodeSelected;
+            SessionsCTRL.ContextMenu = new PopupMenu();
 
             // get list of cached endpoints.
             m_endpoints = m_configuration.LoadCachedEndpoints(true);
@@ -76,11 +77,132 @@ namespace Opc.Ua.SampleClient
             EndpointSelectorCTRL.ConnectEndpoint += EndpointSelectorCTRL_ConnectEndpoint;
             EndpointSelectorCTRL.EndpointsChanged += EndpointSelectorCTRL_OnChange;
 
+            BrowseCTRL.SessionTreeCtrl = SessionsCTRL;
+            BrowseCTRL.NodeSelected += BrowseCTRL_NodeSelected;
+            BrowseCTRL.ContextMenu = new PopupMenu();
+
             // exception dialog
             GuiUtils.ExceptionMessageDlg += ExceptionMessageDlg;
 
-            // initialize control state.
-            Disconnect();
+            ServerUrlTB.Text = "None";
+        }
+
+        private void SessionCtrl_NodeSelected(object sender, TreeNodeActionEventArgs e)
+        {
+            SessionsCTRL.ContextMenu.Commands.Clear();
+
+            if (e.Node != null)
+            {
+                MonitoredItem item = e.Node as MonitoredItem;
+                if (e.Node is MonitoredItem)
+                    SessionsCTRL.ContextMenu.Commands.Add(new UICommand("Delete", ContextMenu_OnDelete, e.Node));
+                else if (e.Node is Subscription)
+                    SessionsCTRL.ContextMenu.Commands.Add(new UICommand("Cancel", ContextMenu_OnCancel, e.Node));
+                else if (e.Node is Session)
+                {
+                    SessionsCTRL.ContextMenu.Commands.Add(new UICommand("Disconnect", ContextMenu_OnDisconnect, e.Node));
+
+                    // Update current session object
+                    m_session = (Session)e.Node;
+                }
+            }
+        }
+
+        private void BrowseCTRL_NodeSelected(object sender, TreeNodeActionEventArgs e)
+        {
+            BrowseCTRL.ContextMenu.Commands.Clear();
+
+            if (e.Node != null)
+            { 
+                ReferenceDescription reference = e.Node as ReferenceDescription;
+                if (reference != null && reference.NodeClass == NodeClass.Variable)
+                {
+                    BrowseCTRL.ContextMenu.Commands.Add(new UICommand("Report", ContextMenu_OnReport, e.Node));
+                    BrowseCTRL.ContextMenu.Commands.Add(new UICommand("Sample", ContextMenu_OnSample, e.Node));
+                }
+            }
+        }
+
+        private void ContextMenu_OnDisconnect(IUICommand command)
+        {
+            try
+            {
+                SessionsCTRL.Delete(command.Id as Session);
+            }
+            catch (Exception exception)
+            {
+                GuiUtils.HandleException(String.Empty, GuiUtils.CallerName(), exception);
+            }
+        }
+
+        private void ContextMenu_OnCancel(IUICommand command)
+        {
+            try
+            {
+                SessionsCTRL.Delete(command.Id as Subscription);
+            }
+            catch (Exception exception)
+            {
+                GuiUtils.HandleException(String.Empty, GuiUtils.CallerName(), exception);
+            }
+        }
+
+        private void ContextMenu_OnDelete(IUICommand command)
+        {
+            try
+            {
+                var monitoredItem = command.Id as MonitoredItem;
+                if (monitoredItem == null)
+                    return;
+                var subscription = monitoredItem.Subscription;
+                SessionsCTRL.Delete(monitoredItem);
+                if (subscription.MonitoredItemCount == 0)
+                {
+                    // Remove subscription if no more items
+                    command.Id = subscription;
+                    ContextMenu_OnCancel(command);
+                }
+            }
+            catch (Exception exception)
+            {
+                GuiUtils.HandleException(String.Empty, GuiUtils.CallerName(), exception);
+            }
+        }
+
+        private void ContextMenu_OnReport(IUICommand command)
+        {
+            try
+            {
+                // can only subscribe to local variables. 
+                ReferenceDescription reference = command.Id as ReferenceDescription;
+                if (m_session != null && reference != null)
+                {
+                    CreateMonitoredItem(
+                        m_session, null, (NodeId)reference.NodeId, MonitoringMode.Reporting);
+                }
+            }
+            catch (Exception exception)
+            {
+                GuiUtils.HandleException(String.Empty, GuiUtils.CallerName(), exception);
+            }
+        }
+
+        private void ContextMenu_OnSample(IUICommand command)
+        {
+            try
+            {
+                // can only subscribe to local variables. 
+                ReferenceDescription reference = command.Id as ReferenceDescription;
+                if (m_session != null && reference != null)
+                {
+                    CreateMonitoredItem(
+                        m_session, null, (NodeId)reference.NodeId, MonitoringMode.Sampling);
+                }
+            }
+            catch (Exception exception)
+            {
+                GuiUtils.HandleException(String.Empty, GuiUtils.CallerName(), exception);
+            }
         }
 
         void CertificateValidator_CertificateValidation(CertificateValidator validator, CertificateValidationEventArgs e)
@@ -123,7 +245,7 @@ namespace Opc.Ua.SampleClient
                 }
             }
 
-            Disconnect();
+            BrowseCTRL.Clear();
 
             for (int ii = 0; ii < m_pages.Count; ii++)
             {
@@ -132,21 +254,6 @@ namespace Opc.Ua.SampleClient
                     m_pages.RemoveAt(ii);
                     break;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Disconnects from a server.
-        /// </summary>
-        public void Disconnect()
-        {
-            BrowseCTRL.SetView(null, BrowseViewType.Objects, null);
-            ServerUrlTB.Text = "None";
-
-            if (m_session != null)
-            {
-                m_session.Close();
-                m_session = null;
             }
         }
 
@@ -208,14 +315,11 @@ namespace Opc.Ua.SampleClient
 
             if (session != null)
             {
-                // disconnect existing session and clean up tree control
-                Disconnect();
-
                 //hook up new session
-                m_session = session;
-                m_session.KeepAlive += new KeepAliveEventHandler(StandardClient_KeepAlive);
-                BrowseCTRL.SetView(m_session, BrowseViewType.Objects, null);
-                StandardClient_KeepAlive(m_session, null);
+                session.KeepAlive += new KeepAliveEventHandler(StandardClient_KeepAlive);
+                StandardClient_KeepAlive(session, null);
+
+               // BrowseCTRL.SetView(session, BrowseViewType.Objects, null);
                 result = true;
             }
 
@@ -365,6 +469,58 @@ namespace Opc.Ua.SampleClient
             catch (Exception exception)
             {
                 Utils.Trace(exception, "Could not register with the LDS");
+            }
+        }
+
+        public void CreateMonitoredItem(
+           Session session, Subscription subscription, NodeId nodeId, MonitoringMode mode)
+        {
+            if (subscription == null)
+            {
+                subscription = session.DefaultSubscription;
+                if (session.AddSubscription(subscription))
+                    subscription.Create();
+            }
+            else
+            {
+                session.AddSubscription(subscription);
+            }
+
+            // add the new monitored item.
+            MonitoredItem monitoredItem = new MonitoredItem(subscription.DefaultItem);
+
+            monitoredItem.StartNodeId = nodeId;
+            monitoredItem.AttributeId = Attributes.Value;
+            monitoredItem.DisplayName = nodeId.Identifier.ToString();
+            monitoredItem.MonitoringMode = mode;
+            monitoredItem.SamplingInterval = mode == MonitoringMode.Sampling ? 1000 : 0;
+            monitoredItem.QueueSize = 0;
+            monitoredItem.DiscardOldest = true;
+
+            monitoredItem.Notification += new MonitoredItemNotificationEventHandler(MonitoredItem_Notification);
+            subscription.AddItem(monitoredItem);
+            subscription.ApplyChanges();
+        }
+
+        private async void MonitoredItem_Notification(MonitoredItem monitoredItem, MonitoredItemNotificationEventArgs e)
+        {
+            try
+            {
+                if (e.NotificationValue == null)
+                {
+                    return;
+                }
+
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal,() =>
+                {
+                    XmlEncoder encoder = new XmlEncoder(monitoredItem.Subscription.Session.MessageContext);
+                    e.NotificationValue.Encode(encoder);
+                    ServerStatusTB.Text = encoder.Close();
+                });
+            }
+            catch (Exception exception)
+            {
+                Utils.Trace(exception, "Error processing monitored item notification.");
             }
         }
 
