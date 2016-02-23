@@ -46,20 +46,6 @@ namespace Opc.Ua.SampleServer
 
             try
             {
-                // process and command line arguments.
-                /*
-                if (application.ProcessCommandLine())
-                {
-                    return;
-                }
-
-                // check if running as a service.
-                if (!Environment.UserInteractive)
-                {
-                    application.StartAsService(new SampleServer());
-                    return;
-                }
-                */
                 // load the application configuration.
                 await application.LoadApplicationConfiguration(false);
 
